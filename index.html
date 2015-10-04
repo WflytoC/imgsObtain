@@ -1,24 +1,74 @@
 <html>
 <head>
 	<title></title>
+	 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	
+</head>
+<body>
+	<input style="width:400px;height:30px;font-size:20pt" type="text" id="path"/>
+	<input style="width:100px;height:40px;font-size:20pt;color:red" type="button" id="obtain" value="获取图片" onclick="obtainImgs();"/>
+</body>
+
+<script type="text/javascript">
+
+	</script>
+
+
+
+
 	<script type="text/javascript">
+			var paste=function(event){
+				if(event.button==2){
+					var gui = require('nw.gui');
+					var menu = new gui.Menu();
+					var menuitem=new gui.MenuItem({ label: '粘贴' })
+					menu.append(menuitem);
+					menu.popup(5, 20);
+					menuitem.click = function() {
+
+						var clipboard = gui.Clipboard.get();
+						var text = clipboard.get('text');
+						document.getElementById("path").value=text;
+						clipboard.clear();
+					}
+				}
+				
+			}
+			document.getElementById("path").addEventListener("mousedown",paste,true);
+	</script>
+
+
+			
+	<script type="text/javascript">
+	//obtain images
 		var obtainImgs=function()
 		{
-			var path=document.getElementById("obtain").value;
+			var path=document.getElementById("path").value;
 			var request = require('request');
 			var Download = require('download');
 			var htmlparser = require("htmlparser2");
 
+
 			request(path, function (error, response, body) {
-  if (!error && response.statusCode == 200) {
-    console.log(body) 
-  }
-	});
+  				if (!error && response.statusCode == 200) {
+  					//
+  					var parser = new htmlparser.Parser({
+    				onopentag: function(name, attribs){
+        			if(name === "img"){
+        				console.log("img   "+attribs.src);
+            		new Download({mode: '755'})
+    					.get(attribs.src,".")
+    					.run();
+        			}
+        			}
+    				}, {decodeEntities: true});
+					parser.write(body);
+					parser.end();
+  				}else{
+  					alert("出点问题啦：网址为空或者网址有错误");
+  				}
+			});
 		}
 	</script>
-</head>
-<body>
-	<input type="text" id="path"/>
-	<input type="button" id="obtain" value="obtain images" onclick="obtainImgs();"/>
-</body>
+
 </html>
